@@ -61,12 +61,18 @@ async function main() {
         ['pointer', 'pointer', 'pointer', 'pointer']
     );
 
+    var napi_create_int32 = Module.findExportByName('qqnt.dll', 'napi_create_int32'); // 新增
+    var napi_create_int32_fn = new NativeFunction( // 新增
+        napi_create_int32, 'int',
+        ['pointer', 'int', 'pointer']
+    );
+
     // 4. 目标native函数地址（sub_181121B4E）
     var native_func_addr = baseAddr.add(0x1121B4E);
 
     // 5. 定义then回调native函数
     // NativeCallback实现
-    var then_callback = new NativeCallback(function(env, info) {
+    var then_callback = new NativeCallback(function (env, info) {
         // 获取回调参数
         var argc_ptr = Memory.alloc(8);
         argc_ptr.writeU64(1);
@@ -78,7 +84,7 @@ async function main() {
         // 获取全局对象 globalThis
         var global_name = Memory.allocUtf8String("globalThis");
         var global_ptr = Memory.alloc(Process.pointerSize);
-        var status_global = napi_get_named_property_fn(env, env /* 这里用env作为global对象指针可能不对，需用napi_get_global */ , global_name, global_ptr);
+        var status_global = napi_get_named_property_fn(env, env /* 这里用env作为global对象指针可能不对，需用napi_get_global */, global_name, global_ptr);
 
         // 如果有napi_get_global，优先用
         var napi_get_global = Module.findExportByName('qqnt.dll', 'napi_get_global');
@@ -177,18 +183,14 @@ async function main() {
             var obj1 = obj1_ptr.readPointer();
 
             var key_chatType = Memory.allocUtf8String("chatType");
-            var chatTypeStr = "2";
-            var chatTypeBuf = Memory.allocUtf8String(chatTypeStr);
-            var chatTypeLen = chatTypeStr.length;
             var val_chatType_ptr = Memory.alloc(Process.pointerSize);
-            var status_chatType = napi_create_string_utf8_fn(
+            var status_chatType = napi_create_int32_fn( // 改为创建数字2
                 napi_env_ptr,
-                chatTypeBuf,
-                chatTypeLen,
+                2,
                 val_chatType_ptr
             );
             if (status_chatType !== 0) {
-                console.log('[!] napi_create_string_utf8_fn(chatType) failed: ' + status_chatType);
+                console.log('[!] napi_create_int32_fn(chatType) failed: ' + status_chatType);
             }
             var val_chatType = val_chatType_ptr.readPointer();
             napi_set_named_property_fn(napi_env_ptr, obj1, key_chatType, val_chatType);
@@ -233,18 +235,14 @@ async function main() {
             var obj2 = obj2_ptr.readPointer();
 
             var key_busiId = Memory.allocUtf8String("busiId");
-            var busiIdStr = "2201";
-            var busiIdBuf = Memory.allocUtf8String(busiIdStr);
-            var busiIdLen = busiIdStr.length;
             var val_busiId_ptr = Memory.alloc(Process.pointerSize);
-            var status_busiId = napi_create_string_utf8_fn(
+            var status_busiId = napi_create_int32_fn( // 改为创建数字2201
                 napi_env_ptr,
-                busiIdBuf,
-                busiIdLen,
+                2201,
                 val_busiId_ptr
             );
             if (status_busiId !== 0) {
-                console.log('[!] napi_create_string_utf8_fn(busiId) failed: ' + status_busiId);
+                console.log('[!] napi_create_int32_fn(busiId) failed: ' + status_busiId);
             }
             var val_busiId = val_busiId_ptr.readPointer();
             napi_set_named_property_fn(napi_env_ptr, obj2, key_busiId, val_busiId);
@@ -266,6 +264,23 @@ async function main() {
             var val_jsonStr = val_jsonStr_ptr.readPointer();
             napi_set_named_property_fn(napi_env_ptr, obj2, key_jsonStr, val_jsonStr);
 
+            var key_recentAbstract = Memory.allocUtf8String("recentAbstract");
+            var recentAbstractStr = "这是最近的摘要";
+            var recentAbstractBuf = Memory.allocUtf8String(recentAbstractStr);
+            var recentAbstractLen = recentAbstractStr.length;
+            var val_recentAbstract_ptr = Memory.alloc(Process.pointerSize);
+            var status_recentAbstract = napi_create_string_utf8_fn(
+                napi_env_ptr,
+                recentAbstractBuf,
+                recentAbstractLen,
+                val_recentAbstract_ptr
+            );
+            if (status_recentAbstract !== 0) {
+                console.log('[!] napi_create_string_utf8_fn(recentAbstract) failed: ' + status_recentAbstract);
+            }
+            var val_recentAbstract = val_recentAbstract_ptr.readPointer();
+            napi_set_named_property_fn(napi_env_ptr, obj2, key_recentAbstract, val_recentAbstract);
+
             var key_isServer = Memory.allocUtf8String("isServer");
             var bool_isServer_ptr = Memory.alloc(Process.pointerSize);
             napi_get_boolean_fn(napi_env_ptr, 0, bool_isServer_ptr);
@@ -276,7 +291,7 @@ async function main() {
             var bool1_ptr = Memory.alloc(Process.pointerSize);
             var bool2_ptr = Memory.alloc(Process.pointerSize);
             napi_get_boolean_fn(napi_env_ptr, 1, bool1_ptr);
-            napi_get_boolean_fn(napi_env_ptr, 0, bool2_ptr);
+            napi_get_boolean_fn(napi_env_ptr, 1, bool2_ptr);
             var bool1 = bool1_ptr.readPointer();
             var bool2 = bool2_ptr.readPointer();
 

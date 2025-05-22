@@ -11,7 +11,7 @@ def main():
     print(f"Attached to process {pid}")
 
     while True:
-        with open("35341.js", encoding="utf-8") as f:
+        with open("test.js", encoding="utf-8") as f:
             script = session.create_script(f.read())
             script.on("message", on_message)
             script.load()
