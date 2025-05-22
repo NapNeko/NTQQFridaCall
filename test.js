@@ -248,7 +248,7 @@ async function main() {
             napi_set_named_property_fn(napi_env_ptr, obj2, key_busiId, val_busiId);
 
             var key_jsonStr = Memory.allocUtf8String("jsonStr");
-            var jsonStr = '{\"align\":\"center\",\"items\":[{\"txt\":\"下一秒起床通过王者荣耀加入群\",\"type\":\"nor\"}]}';
+            var jsonStr = JSON.stringify({ "align": "center", "items": [{ "txt": "123", "type": "nor" }] });
             var jsonStrBuf = Memory.allocUtf8String(jsonStr);
             var jsonStrLen = jsonStr.length;
             var val_jsonStr_ptr = Memory.alloc(Process.pointerSize);
@@ -265,7 +265,7 @@ async function main() {
             napi_set_named_property_fn(napi_env_ptr, obj2, key_jsonStr, val_jsonStr);
 
             var key_recentAbstract = Memory.allocUtf8String("recentAbstract");
-            var recentAbstractStr = "这是最近的摘要";
+            var recentAbstractStr = "123";
             var recentAbstractBuf = Memory.allocUtf8String(recentAbstractStr);
             var recentAbstractLen = recentAbstractStr.length;
             var val_recentAbstract_ptr = Memory.alloc(Process.pointerSize);
@@ -286,7 +286,68 @@ async function main() {
             napi_get_boolean_fn(napi_env_ptr, 0, bool_isServer_ptr);
             var bool_isServer = bool_isServer_ptr.readPointer();
             napi_set_named_property_fn(napi_env_ptr, obj2, key_isServer, bool_isServer);
+            try {
+                // 获取 globalThis
+                var global_ptr = Memory.alloc(Process.pointerSize);
+                var napi_get_global = Module.findExportByName('qqnt.dll', 'napi_get_global');
+                var global_obj;
+                if (napi_get_global) {
+                    var napi_get_global_fn = new NativeFunction(
+                        napi_get_global, 'int',
+                        ['pointer', 'pointer']
+                    );
+                    var status_global = napi_get_global_fn(napi_env_ptr, global_ptr);
+                    global_obj = global_ptr.readPointer();
+                } else {
+                    var global_name = Memory.allocUtf8String("globalThis");
+                    var status_global = napi_get_named_property_fn(napi_env_ptr, napi_env_ptr, global_name, global_ptr);
+                    global_obj = global_ptr.readPointer();
+                }
 
+                // 获取 JSON 对象
+                var json_name = Memory.allocUtf8String("JSON");
+                var json_ptr = Memory.alloc(Process.pointerSize);
+                var status_json = napi_get_named_property_fn(napi_env_ptr, global_obj, json_name, json_ptr);
+                var json_obj = json_ptr.readPointer();
+
+                // 获取 stringify 函数
+                var stringify_name = Memory.allocUtf8String("stringify");
+                var stringify_ptr = Memory.alloc(Process.pointerSize);
+                var status_stringify = napi_get_named_property_fn(napi_env_ptr, json_obj, stringify_name, stringify_ptr);
+                var stringify_fn = stringify_ptr.readPointer();
+
+                // 调用 stringify(obj2)
+                var stringify_argv = Memory.alloc(Process.pointerSize);
+                stringify_argv.writePointer(obj2);
+                var stringify_result_ptr = Memory.alloc(Process.pointerSize);
+                var status_call = napi_call_function_fn(
+                    napi_env_ptr,
+                    json_obj,
+                    stringify_fn,
+                    1,
+                    stringify_argv,
+                    stringify_result_ptr
+                );
+                if (status_call === 0) {
+                    // 获取字符串内容
+                    var napi_get_value_string_utf8 = Module.findExportByName('qqnt.dll', 'napi_get_value_string_utf8');
+                    if (napi_get_value_string_utf8) {
+                        var napi_get_value_string_utf8_fn = new NativeFunction(
+                            napi_get_value_string_utf8, 'int',
+                            ['pointer', 'pointer', 'pointer', 'size_t', 'pointer']
+                        );
+                        var buf = Memory.alloc(1024);
+                        var copied = Memory.alloc(8);
+                        napi_get_value_string_utf8_fn(napi_env_ptr, stringify_result_ptr.readPointer(), buf, 1023, copied);
+                        var jsStr = buf.readUtf8String();
+                        console.log('[obj2 as JSON] ' + jsStr);
+                    }
+                } else {
+                    console.log('[!] JSON.stringify(obj2) call failed: ' + status_call);
+                }
+            } catch (e) {
+                console.log('[!] Exception during obj2 JSON output: ' + e);
+            }
             // 两个bool参数
             var bool1_ptr = Memory.alloc(Process.pointerSize);
             var bool2_ptr = Memory.alloc(Process.pointerSize);
