@@ -1,6 +1,8 @@
 # NTQQFridaCall
 Native调用NTQQ 原理演示
 
+## 版本
+QQNT 35341
 
 ## 实现思路和未来
 
