@@ -19,3 +19,6 @@ napi_env this 可用使用 `MsgService::addMsgListener`初始化监听时捕获n
 那么我们就能在不注入js的情况下执行我们任意需要的逻辑
 
 ![演示图片](./readme.png)
+
+## Tips
+和我的妙妙反撤回搭配一起 也许就能实现撤回通知了 并且代码注入少 检测点触发很少很少
