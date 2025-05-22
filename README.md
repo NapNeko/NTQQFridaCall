@@ -17,3 +17,5 @@ napi_env this 可用使用 `MsgService::addMsgListener`初始化监听时捕获n
 这里是最小化样本 napi_env 貌似不能跨线程保存 其this是否持久我也不清楚 如果有必须可用试试thread_safe或者napi 将这些关键参数持久下去并实现跨线程调用
 
 那么我们就能在不注入js的情况下执行我们任意需要的逻辑
+
+![演示图片](./readme.png)
