@@ -20,7 +20,8 @@ napi_env this 可用使用 `MsgService::addMsgListener`初始化监听时捕获n
 
 那么我们就能在不注入js的情况下执行我们任意需要的逻辑
 
-![演示图片](./readme.png)
+![演示图片1](./readme_0.png)
+![演示图片2](./readme_1.png)
 
 ## 如何跑这个演示代码
 1. 安装依赖
