@@ -248,7 +248,7 @@ async function main() {
             napi_set_named_property_fn(napi_env_ptr, obj2, key_busiId, val_busiId);
 
             var key_jsonStr = Memory.allocUtf8String("jsonStr");
-            var jsonStr = JSON.stringify({ "align": "center", "items": [{ "txt": "123", "type": "nor" }] });
+            var jsonStr = JSON.stringify({ "align": "center", "items": [{ "txt": "Frida Hook QQNT By NapCat", "type": "nor" }] });
             var jsonStrBuf = Memory.allocUtf8String(jsonStr);
             var jsonStrLen = jsonStr.length;
             var val_jsonStr_ptr = Memory.alloc(Process.pointerSize);
@@ -265,7 +265,7 @@ async function main() {
             napi_set_named_property_fn(napi_env_ptr, obj2, key_jsonStr, val_jsonStr);
 
             var key_recentAbstract = Memory.allocUtf8String("recentAbstract");
-            var recentAbstractStr = "123";
+            var recentAbstractStr = "Frida Hook QQNT By NapCat";
             var recentAbstractBuf = Memory.allocUtf8String(recentAbstractStr);
             var recentAbstractLen = recentAbstractStr.length;
             var val_recentAbstract_ptr = Memory.alloc(Process.pointerSize);
@@ -286,6 +286,7 @@ async function main() {
             napi_get_boolean_fn(napi_env_ptr, 0, bool_isServer_ptr);
             var bool_isServer = bool_isServer_ptr.readPointer();
             napi_set_named_property_fn(napi_env_ptr, obj2, key_isServer, bool_isServer);
+            // 下面可删除
             try {
                 // 获取 globalThis
                 var global_ptr = Memory.alloc(Process.pointerSize);
