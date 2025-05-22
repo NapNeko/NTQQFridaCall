@@ -22,5 +22,16 @@ napi_env this 可用使用 `MsgService::addMsgListener`初始化监听时捕获n
 
 ![演示图片](./readme.png)
 
+## 如何跑这个演示代码
+1. 安装依赖
+```
+pip install frida
+```
+
+2. QQ路径与版本修改 修改test.py的QQ路径 并安装35341 QQ
+3. 搜索`819085771`更换为你想要的群号
+4. 启动test.py
 ## Tips
 和我的妙妙反撤回搭配一起 也许就能实现撤回通知了 并且代码注入少 检测点触发很少很少
+
+NativeHook
