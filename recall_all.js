@@ -7,9 +7,17 @@ function bytesToHex(arrayBuffer) {
     return hex.join("");
 }
 
-let tsfn_ptr = null;
-let msgService_Js_This_Ref = null;
-let ref_ptr_array = [];
+let tsfn_ptr = null; // 用于跨线程调用JS
+let msgService_Js_This_Ref = null; // 引用msgService对象
+let ref_ptr_array = []; // 安抚 frida memory gc
+
+// QQNT Windows 35341
+// 下面是QQNT的一些关键rva 除此之外recall peer seq解析可能存在版本差异
+let add_local_gray_tip_rva = 0x1121B4E;
+let recall_grp_patch_rva = 0x25BF57F;
+let add_msg_listener_rva = 0x11133F4;
+let recall_grp_func_rva = 0x25BF4D3;
+
 function callAddGrayTip(tsfn, peerUid, tip_text) {
     const napi_call_threadsafe_function = Module.findExportByName('qqnt.dll', 'napi_call_threadsafe_function');
     if (!napi_call_threadsafe_function) {
@@ -45,7 +53,7 @@ function main() {
     console.log('[+] wrapper.node baseAddr: ' + baseAddr);
 
     // jz -> jnz 去掉撤回通知逻辑
-    const patchAddr = baseAddr.add(0x25BF57F);
+    const patchAddr = baseAddr.add(recall_grp_patch_rva);
     console.log("patchAddr:", patchAddr);
     Memory.protect(patchAddr, 1, 'rwx');
     const origByte = patchAddr.readU8();
@@ -135,7 +143,7 @@ function main() {
             'pointer'  // result
         ]
     );
-    var native_func_addr = baseAddr.add(0x1121B4E);
+    var native_func_addr = baseAddr.add(add_local_gray_tip_rva);
     var then_callback = new NativeCallback(function (env, info) {
         // 获取回调参数
         var argc_ptr = Memory.alloc(8);
@@ -235,14 +243,14 @@ function main() {
                 groupId = peerUidPtr.readUtf8String();
                 tip_text = tipTextPtr.readUtf8String();
                 //删除数组ref_ptr_array中对应元素
-                if(ref_ptr_array.indexOf(peerUidPtr) !== -1){
+                if (ref_ptr_array.indexOf(peerUidPtr) !== -1) {
                     ref_ptr_array.splice(ref_ptr_array.indexOf(peerUidPtr), 1);
                 }
-                if(ref_ptr_array.indexOf(tipTextPtr) !== -1){
+                if (ref_ptr_array.indexOf(tipTextPtr) !== -1) {
                     ref_ptr_array.splice(ref_ptr_array.indexOf(tipTextPtr), 1);
                 }
                 // 回收data
-                if(ref_ptr_array.indexOf(data) !== -1){
+                if (ref_ptr_array.indexOf(data) !== -1) {
                     ref_ptr_array.splice(ref_ptr_array.indexOf(data), 1);
                 }
             } catch (e) {
@@ -509,8 +517,8 @@ function main() {
         return 0;
     }, 'int', ['pointer', 'pointer', 'pointer', 'pointer']);
 
-    let sub_11133F4 = baseAddr.add(0x11133F4);
-    Interceptor.attach(sub_11133F4, {
+    let add_msg_listener = baseAddr.add(add_msg_listener_rva);
+    Interceptor.attach(add_msg_listener, {
         onEnter: function (args) {
             const napi_env_ptr = args[0];
             var this_arg_ptr = Memory.alloc(Process.pointerSize);
@@ -564,7 +572,7 @@ function main() {
     });
     // [Msg] on grp recall nfy ! frm:{} to:{}, pr:{} seq:{} rd:{} t:{} op_uid:{} op_t:{} is_off:{} trl_flag:{}
     // 解析撤回事件
-    var hookAddr = baseAddr.add(0x25BF4D3);
+    var hookAddr = baseAddr.add(recall_grp_func_rva);
     console.log("hookAddr:", hookAddr);
     Interceptor.attach(hookAddr, {
         onEnter: function (args) {
