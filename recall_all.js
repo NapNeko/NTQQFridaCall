@@ -8,7 +8,6 @@ function bytesToHex(arrayBuffer) {
 }
 
 let tsfn_ptr = null;
-let msgService_Js_This = null;
 let msgService_Js_This_Ref = null;
 let ref_ptr_array = [];
 function callAddGrayTip(tsfn, peerUid, tip_text) {
@@ -225,7 +224,6 @@ function main() {
     }
     const js_callback = new NativeCallback(function (env, js_cb, context, data) {
         console.log('[+] cb env:', env);
-        console.log('[+] cb js_this:', msgService_Js_This);
         console.log('[TSFN JS Callback] 收到回调');
 
         var groupId = "819085771";
@@ -521,7 +519,6 @@ function main() {
                 ptr(0), ptr(0),
                 this_arg_ptr, ptr(0)
             );
-            msgService_Js_This = this_arg_ptr;
 
             var ref_ptr = Memory.alloc(Process.pointerSize);
             var ref_create_status = napi_create_reference_fn(
