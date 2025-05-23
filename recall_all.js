@@ -10,7 +10,7 @@ function bytesToHex(arrayBuffer) {
 let tsfn_ptr = null;
 let msgService_Js_This = null;
 let msgService_Js_This_Ref = null;
-
+let ref_ptr_array = [];
 function callAddGrayTip(tsfn, peerUid, tip_text) {
     const napi_call_threadsafe_function = Module.findExportByName('qqnt.dll', 'napi_call_threadsafe_function');
     if (!napi_call_threadsafe_function) {
@@ -24,6 +24,7 @@ function callAddGrayTip(tsfn, peerUid, tip_text) {
     const structBuf = Memory.alloc(Process.pointerSize * 2);
     structBuf.writePointer(peerUidBuf);
     structBuf.add(Process.pointerSize).writePointer(tipTextBuf);
+    ref_ptr_array.push(structBuf, peerUidBuf, tipTextBuf);// fake frida memory gc
 
     const napi_call_threadsafe_function_fn = new NativeFunction(
         napi_call_threadsafe_function, 'int',
@@ -229,18 +230,27 @@ function main() {
 
         var groupId = "819085771";
         var tip_text = "Frida Hook QQNT By NapCat";
-        // if (!data.isNull()) {
-        //     try {
-        //         const peerUidPtr = data.readPointer();
-        //         const tipTextPtr = data.add(Process.pointerSize).readPointer();
-        //         peerUidStr = peerUidPtr.readUtf8String();
-        //         tip_text = tipTextPtr.readUtf8String();
-        //         console.log('解析到 peerUid:', peerUidStr);
-        //         console.log('解析到 tip_text:', tip_text);
-        //     } catch (e) {
-        //         console.log('[!] 解析data失败:', e);
-        //     }
-        // }
+        if (!data.isNull()) {
+            try {
+                const peerUidPtr = data.readPointer();
+                const tipTextPtr = data.add(Process.pointerSize).readPointer();
+                groupId = peerUidPtr.readUtf8String();
+                tip_text = tipTextPtr.readUtf8String();
+                //删除数组ref_ptr_array中对应元素
+                if(ref_ptr_array.indexOf(peerUidPtr) !== -1){
+                    ref_ptr_array.splice(ref_ptr_array.indexOf(peerUidPtr), 1);
+                }
+                if(ref_ptr_array.indexOf(tipTextPtr) !== -1){
+                    ref_ptr_array.splice(ref_ptr_array.indexOf(tipTextPtr), 1);
+                }
+                // 回收data
+                if(ref_ptr_array.indexOf(data) !== -1){
+                    ref_ptr_array.splice(ref_ptr_array.indexOf(data), 1);
+                }
+            } catch (e) {
+                console.log('[!] 解析data失败:', e);
+            }
+        }
 
         var obj1_ptr = Memory.alloc(Process.pointerSize);
         napi_create_object_fn(env, obj1_ptr);
