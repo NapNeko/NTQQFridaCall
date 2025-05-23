@@ -32,6 +32,5 @@ napi_env this 可用使用 `MsgService::addMsgListener`初始化监听时捕获n
 pip install frida
 ```
 
-2. QQ路径与版本修改 recall_all.py的QQ路径 并安装35341 QQ
-3. 搜索`819085771`更换为你想要的群号
-4. 启动recall_all.py
+2. QQ路径与版本修改 recall_all.py 的QQ路径 并安装35341 QQ
+3. 启动recall_all.py
