@@ -16,12 +16,15 @@ QQNT 35341
 
 napi_env this 可用使用 `MsgService::addMsgListener`初始化监听时捕获napi_env 然后解napi_callback_info获取this
 
-这里是最小化样本 napi_env 貌似不能跨线程保存 其this是否持久我也不清楚 如果有必须可用试试thread_safe或者napi 将这些关键参数持久下去并实现跨线程调用
+这里是最小化样本 napi_env 貌似不能跨线程保存 其this是否持久我也不清楚 如果有必须可用试试thread_safe或者napi 将这些关键参数持久下去并实现跨线程调用(已实现)
 
 那么我们就能在不注入js的情况下执行我们任意需要的逻辑
 
 ![演示图片1](./readme_0.png)
 ![演示图片2](./readme_1.png)
+
+## 演示内容
+群聊反撤回与小灰条添加
 
 ## 如何跑这个演示代码
 1. 安装依赖
@@ -29,9 +32,6 @@ napi_env this 可用使用 `MsgService::addMsgListener`初始化监听时捕获n
 pip install frida
 ```
 
-2. QQ路径与版本修改 修改test.py的QQ路径 并安装35341 QQ
+2. QQ路径与版本修改 recall_all.py的QQ路径 并安装35341 QQ
 3. 搜索`819085771`更换为你想要的群号
-4. 启动test.py
-
-## Tips
-和我的妙妙反撤回搭配一起 也许就能实现撤回通知了 并且代码注入少 检测点触发很少很少
+4. 启动recall_all.py
