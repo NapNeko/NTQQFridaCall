@@ -11,17 +11,25 @@ let tsfn_ptr = null;
 let msgService_Js_This = null;
 let msgService_Js_This_Ref = null;
 
-function callAddGrayTip(tsfn) {
+function callAddGrayTip(tsfn, peerUid, tip_text) {
     const napi_call_threadsafe_function = Module.findExportByName('qqnt.dll', 'napi_call_threadsafe_function');
     if (!napi_call_threadsafe_function) {
         console.log('[!] napi_call_threadsafe_function not found');
         return;
     }
+    // 分配结构体：peerUid和tip_text都为utf8字符串
+    const peerUidBuf = Memory.allocUtf8String(peerUid);
+    const tipTextBuf = Memory.allocUtf8String(tip_text);
+    // 结构体：{ peerUidPtr, tipTextPtr }
+    const structBuf = Memory.alloc(Process.pointerSize * 2);
+    structBuf.writePointer(peerUidBuf);
+    structBuf.add(Process.pointerSize).writePointer(tipTextBuf);
+
     const napi_call_threadsafe_function_fn = new NativeFunction(
         napi_call_threadsafe_function, 'int',
         ['pointer', 'pointer', 'int']
     );
-    const status = napi_call_threadsafe_function_fn(tsfn, ptr(0), 0);
+    const status = napi_call_threadsafe_function_fn(tsfn, structBuf, 0);
     if (status !== 0) {
         console.log('[!] napi_call_threadsafe_function failed:', status);
     }
@@ -218,7 +226,22 @@ function main() {
         console.log('[+] cb env:', env);
         console.log('[+] cb js_this:', msgService_Js_This);
         console.log('[TSFN JS Callback] 收到回调');
+
+        var groupId = "819085771";
         var tip_text = "Frida Hook QQNT By NapCat";
+        // if (!data.isNull()) {
+        //     try {
+        //         const peerUidPtr = data.readPointer();
+        //         const tipTextPtr = data.add(Process.pointerSize).readPointer();
+        //         peerUidStr = peerUidPtr.readUtf8String();
+        //         tip_text = tipTextPtr.readUtf8String();
+        //         console.log('解析到 peerUid:', peerUidStr);
+        //         console.log('解析到 tip_text:', tip_text);
+        //     } catch (e) {
+        //         console.log('[!] 解析data失败:', e);
+        //     }
+        // }
+
         var obj1_ptr = Memory.alloc(Process.pointerSize);
         napi_create_object_fn(env, obj1_ptr);
         var obj1 = obj1_ptr.readPointer();
@@ -254,7 +277,7 @@ function main() {
         napi_set_named_property_fn(env, obj1, key_guildId, val_guildId);
 
         var key_peerUid = Memory.allocUtf8String("peerUid");
-        var peerUidStr = "819085771";//群号
+        var peerUidStr = groupId;//群号
         var peerUidBuf = Memory.allocUtf8String(peerUidStr);
         var peerUidLen = peerUidStr.length;
         var val_peerUid_ptr = Memory.alloc(Process.pointerSize);
@@ -547,7 +570,9 @@ function main() {
             const seq = seq_ptr.readU64();
             console.log("seq:", seq);
             if (tsfn_ptr) {
-                callAddGrayTip(tsfn_ptr);
+                let tip_text = "Sequence: " + seq + " has been recalled";
+                // 发送回调
+                callAddGrayTip(tsfn_ptr, peer, tip_text);
             }
             console.log("<=");
         }
